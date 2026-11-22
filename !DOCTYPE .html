@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloc de notas</title>
+<style>
+  html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; background: #fff; color: #111; }
+  #barra { display: flex; gap: 8px; padding: 8px; background: #f0f0f0; align-items: center; }
+  #nombre { flex: 1; min-width: 0; padding: 8px; font-size: 16px; }
+  button { padding: 8px 14px; font-size: 16px; cursor: pointer; }
+  #texto { flex: 1; border: none; outline: none; resize: none; padding: 12px; font-size: 16px; font-family: Consolas, monospace; }
+  @media (prefers-color-scheme: dark) {
+    body, #texto { background: #1e1e1e; color: #eee; }
+    #barra { background: #2b2b2b; }
+  }
+</style>
+</head>
+<body>
+  <div id="barra">
+    <input id="nombre" value="nota.txt" aria-label="Nombre del archivo">
+    <button id="abrir">Abrir</button>
+    <button id="guardar">Guardar</button>
+    <input id="archivo" type="file" accept=".txt,text/plain" hidden>
+  </div>
+  <textarea id="texto" placeholder="Escribe aquí..." autofocus></textarea>
+
+<script>
+  const texto = document.getElementById("texto");
+  const nombre = document.getElementById("nombre");
+  const archivo = document.getElementById("archivo");
+
+  document.getElementById("guardar").onclick = () => {
+    let n = nombre.value.trim() || "nota.txt";
+    if (!n.toLowerCase().endsWith(".txt")) n += ".txt";
+    const blob = new Blob([texto.value], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = n;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  document.getElementById("abrir").onclick = () => archivo.click();
+
+  archivo.onchange = () => {
+    const f = archivo.files[0];
+    if (!f) return;
+    const lector = new FileReader();
+    lector.onload = () => {
+      texto.value = lector.result;
+      nombre.value = f.name;
+    };
+    lector.readAsText(f, "UTF-8");
+    archivo.value = "";
+  };
+
+  // Ctrl+S para guardar
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      document.getElementById("guardar").click();
+    }
+  });
+</script>
+</body>
+</html>
